@@ -8,26 +8,62 @@ h = 8 # number of heads
 d_model = 512 # embedding dimensions
 
 class SingleHeadSelfAttention(nn.Module):
-        def __init__(self, embedding_dim : int, head_size : int):
-            super().__init__()
-            self.get_keys = nn.Linear(embedding_dim, head_size, bias = False)
-            self.get_querys = nn.Linear(embedding_dim, head_size, bias = False)
-            self.get_values = nn.Linear(embedding_dim, head_size, bias = False)
+    def __init__(self, embedding_dim : int, head_size : int):
+        super().__init__()
+        self.get_keys = nn.Linear(embedding_dim, head_size, bias = False)
+        self.get_queries = nn.Linear(embedding_dim, head_size, bias = False)
+        self.get_values = nn.Linear(embedding_dim, head_size, bias = False)
 
-        def forward(self, q, k_v, mask=None) -> TensorType[float]:
-            # Batch Size x Context (Sequence Length) x Embedding Dimensions
-            K = self.get_keys(k_v)
-            Q = self.get_querys(q)
-            V = self.get_values(k_v)
+    def forward(self, q, kv, mask=None) -> TensorType[float]:
+        # Batch Size x Context (Sequence Length) x Embedding Dimensions
+        K = self.get_keys(kv)
+        Q = self.get_queries(q)
+        V = self.get_values(kv)
 
-            scores = (Q @ K.transpose(-2, -1)) / (K.shape[2] ** 0.5)
+        scores = (Q @ K.transpose(-2, -1)) / (K.shape[-1] ** 0.5)
 
-            scores = scores.masked_fill(mask, float('inf'))
-            attn_weights = F.softmax(dim=-1)
+        if mask is not None:
+            scores = scores.masked_fill(mask, float('-inf'))
 
-            output = attn_weights @ V
+        attn_weights = F.softmax(scores, dim=-1)
 
-            return output
+        output = attn_weights @ V
+
+        return output
+        
+class MultiHeadedSelfAttention(nn.Module):
+    def __init__(self, embedding_dim : int, num_heads : int):
+        super().__init__()
+        self.attn_heads = nn.ModuleList()
+        for _ in range(num_heads):
+            self.attn_heads.append(SingleHeadSelfAttention(embedding_dim, embedding_dim // num_heads))
+    
+    def forward(self, q, kv) -> TensorType[float]:
+        head_outputs = []
+        for head in self.attn_heads:
+            head_outputs.append(head(q, kv))
+        concatentated = torch.cat(head_outputs, dim=-1)
+        return concatentated
+
+class MaskedMultiHeadedSelfAttention(nn.Module):
+    def __init__(self, embedding_dim : int, num_heads : int):
+        super().__init__()
+        self.attn_heads = nn.ModuleList()
+        for _ in range(num_heads):
+            self.attn_heads.append(SingleHeadSelfAttention(embedding_dim, embedding_dim // num_heads))
+    
+    def forward(self, q, kv) -> TensorType[float]:
+        T = q.shape[1]
+        mask = torch.tril(torch.ones(T, T, device = q.device)).bool()
+        mask = mask.unsqueeze(0).unsqueeze(0)
+        head_outputs = []
+        for head in self.attn_heads:
+            head_outputs.append(head(q, kv, mask))
+        concatenated = torch.cat(head_outputs, dim=-1)
+        return concatenated
+
+        
+          
 
 
 
