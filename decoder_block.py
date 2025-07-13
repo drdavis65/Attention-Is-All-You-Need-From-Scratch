@@ -24,6 +24,6 @@ class Decoder(nn.Module):
     
     def forward(self, out_embed, encoder_out) -> TensorType[float]:
         masked_attn_out = self.norm1(out_embed + self.dropout1(self.MMHSA(out_embed, out_embed)))
-        reg_attn_out = self.norm2(masked_attn_out + self.dropout2(self.MHSA(masked_attn_out, encoder_out)))
-        decoder_out = self.norm3(reg_attn_out + self.dropout3(self.FF(reg_attn_out)))
+        cross_attn_out = self.norm2(masked_attn_out + self.dropout2(self.MHSA(masked_attn_out, encoder_out)))
+        decoder_out = self.norm3(cross_attn_out + self.dropout3(self.FF(cross_attn_out)))
         return decoder_out
