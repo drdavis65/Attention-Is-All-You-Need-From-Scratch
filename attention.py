@@ -70,9 +70,3 @@ class FeedForward(nn.Module):
     def forward(self, x) -> TensorType[float]:
         return self.net(x)
 
-
-
-
-
-
-    

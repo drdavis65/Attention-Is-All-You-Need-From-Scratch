@@ -3,7 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchtyping import TensorType
 
-import attention, feedforward
+from attention import MaskedMultiHeadedSelfAttention, MultiHeadedSelfAttention
+from feedforward import FeedForward
 
 h = 8 # number of heads
 p_drop = 0.1 # probability of dropout
@@ -12,13 +13,13 @@ d_ff = 2048 # feedforward hidden layer neurons
 class Decoder(nn.Module):
     def __init__(self, d_model : int):
         super().__init__()
-        self.MMHSA = attention.MaskedMultiHeadedSelfAttention(d_model, h)
+        self.MMHSA = MaskedMultiHeadedSelfAttention(d_model, h)
         self.norm1 = nn.LayerNorm(d_model)
         self.dropout1 = nn.Dropout(p_drop)
-        self.MHSA = attention.MultiHeadedSelfAttention(d_model, h)
+        self.MHSA = MultiHeadedSelfAttention(d_model, h)
         self.norm2 = nn.LayerNorm(d_model)
         self.dropout2 = nn.Dropout(p_drop)
-        self.FF = feedforward.FeedForward(d_model, d_ff)
+        self.FF = FeedForward(d_model, d_ff)
         self.norm3 = nn.LayerNorm(d_model)
         self.dropout3 = nn.Dropout(p_drop)
     
