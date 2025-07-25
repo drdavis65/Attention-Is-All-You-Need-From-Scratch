@@ -27,7 +27,7 @@ class Transformer(nn.Module):
             self.decoder_blocks.append(Decoder(d_model))
         self.final_linear = nn.Linear(d_model, vocab_size)
 
-    def forward(self, input_ids: TensorType[int], output_ids: TensorType[int]) -> TensorType[float]:
+    def forward(self, input_ids: TensorType["B", "T"], output_ids: TensorType["B", "T"]) -> TensorType["B", "T", "V"]:
         source_embed = self.input_embedding(input_ids)
         target_embed = self.output_embedding(output_ids)
         

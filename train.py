@@ -15,7 +15,7 @@ d_model = 512
 context_window = 5000
 warmup_steps = 4000
 batch_size = 32
-total_steps = 10000  # define your own
+total_steps = 10000 
 
 # Tokenizer
 tokenizer = AutoTokenizer.from_pretrained("t5-small")
