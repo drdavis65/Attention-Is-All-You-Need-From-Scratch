@@ -18,7 +18,7 @@ I was using the "t5-small" at first and noticed a lot of overfitting after 6000 
 ### Know your dataset...
 I wasn't thinking of the way that the wmt14 fr-en dataset was distributed throughout the samples and that the data may be collected from different sources. I stopped my training after 50,000 steps and switched my training set, assuming that they were all equivalent and none had repeated so far so it wouldn't be a problem. After doing this, my training loss had a significant dip before leveling out while my validation loss actually increased by 0.1 (as seen in the plot below). Questioning this, I realized that if the dataset is not randomized from the start, then the samples may be similar due to various reasons (same source, same sentence structure, etc.).
 
-![Training Loss Plot](plot_imgs/68000-steps-no-label-smoothing-training-progress.png68000-steps-no-label-smoothing-training-progress.png)
+![Training Loss Plot](/plot_imgs/68000-steps-no-label-smoothing-training-progress.png68000-steps-no-label-smoothing-training-progress.png)
 
 ---
 
