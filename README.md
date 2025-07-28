@@ -1,16 +1,16 @@
 ## Lessons learned:
 
 ### Colab limitations and dataset chunking
-Because Google Colab has unpredictable runtime limits and unexpected crashes can occur, I had to chunk the dataset to avoid crashes mid-training. My initial approach was to load a large portion (e.g., 4 million samples), train for a fixed number of steps (e.g., 25,000), then restart from a checkpoint with a new chunk. This seemed fine until I realized that chunking without true shuffling risks training on data that may be too similar — and worse, the remaining unseen data may differ in distribution. Going forward, I plan to implement a global shuffle of the entire dataset ahead of time and divide it into persistent shards to ensure every chunk maintains representative diversity.
+Because Google Colab has unpredictable runtime limits and unexpected crashes can occur, I had to chunk the dataset to avoid crashes mid-training. My initial approach was to load a large portion (e.g., 4 million samples) and try to train for 100,000 steps to match the paper. But with Colab's unpredictable crashes, I kept having to restart. To work around this issue, I decided to train in chunks rather than shoot for the whole training run in one go and also learned to save checkpoints frequently which brings me to the next things I learned in this process...
 
 ---
 
 ### Track everything
-Early on, I was only logging training and validation loss every 100 steps. When plotting, I had to retroactively scale the x-axis to reflect actual step counts. This works, but it’s better to log the actual global step explicitly and save that along with loss, learning rate, etc. Also, saving plots regularly (every 1000 or 5000 steps) can help spot divergence or overfitting trends earlier.
+Early on, I was only logging training and validation loss every 1000 steps. When plotting, I had to retroactively scale the x-axis to reflect actual step counts. This works, but the resolution of the plots is highly smoothed and you don't get a good idea of the actual pattern behind the learning. I found that it’s better to log the actual global step explicitly and log the losses, learning rate, etc. more frequently (every 100 steps). Also, saving checkpoints to Google Drive regularly (every 500 steps) can help recover in case anything goes wrong with your Colab environment and prevent wasted time and money on re-training.
 
 ---
 
-### Make sure you are using the right tokenizer!
+### Make sure you are using the right tokenizer
 I was using the "t5-small" at first and noticed a lot of overfitting after 6000 steps. I changed the validation set to check, and continued training, but the overfitting trend continued. So I read more into the tokenizer that I had chosen, only to find that it was not really a multilingual tokenizer and would not work well with the English to French translation task. I switched to the `MarianTokenizer.from_pretrained("Helsinki-NLP/opus-mt-en-fr")` tokenizer with much more stable results and got rid of my divergence problem.
 
 ---
